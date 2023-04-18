@@ -13,6 +13,11 @@
         </div>
     @endif
     <h2 class="text-center">Transaction Details</h2>
+    <br />
+    <div align="right">
+        <button type="button" name="add" id="add_data" class="btn btn-success btn-sm">Add</button>
+    </div>
+    <br />
     <div class="container mr-5 ml-5 mt-5">
         <table id="transactionTable" border="1px solid #000">
             <thead>
@@ -37,6 +42,55 @@
             </tbody>
         </table>
     </div>
+    <div id="transactionModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="" method="post" id="transaction_form">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal">&times;</button>
+                        <h4>Add Transaction</h4>
+                    </div>
+                    <div class="modal-body">
+                        @csrf
+                        <span id="form_output"></span>
+                        <div class="form-group"><label for="">Enter Payment Id</label><input type="text"
+                                name="payment_id" id="payment_id" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Enter Amount</label>
+                            <input type="text" name="amount" id="amount" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Enter currency</label>
+                            <input type="text" name="currency" id="currency" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Enter status</label>
+                            <select class="form-control m-bot15" name="status">
+                                <option value="COMPLETED" @selected(T = T)>
+                                    COMPLETED
+                                </option>
+                                <option value="PENDING" @selected(T = T)>
+                                    PENDING
+                                </option>
+
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Enter created_date</label>
+                            <input type="date" name="created_at" id="created_at" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" name="button_action" id="button_action" value="insert" />
+                        <input type="submit" name="submit" id="action" value="Add" class="btn btn-info" />
+                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"
@@ -48,6 +102,46 @@
     <script>
         $(document).ready(function() {
             $('#transactionTable').DataTable();
+        });
+    </script>
+    <script type="text/javascript">
+        $('#add_data').click(function() {
+            $('#transactionModal').modal('show');
+            $('#transaction_form')[0].reset();
+            $('#form_output').html('');
+            $('#button_action').val('insert');
+            $('#action').val('Add');
+        });
+
+        $('#transaction_form').on('submit', function(event) {
+            event.preventDefault();
+            var form_data = $(this).serialize();
+            $.ajax({
+                url: "{{ route('postdata') }}",
+                method: "POST",
+                data: form_data,
+                dataType: "json",
+                success: function(data) {
+                    if (data.error.length > 0) {
+                        var error_html = '';
+                        for (var count = 0; count < data.error.length; count++) {
+                            error_html += '<div class="alert alert-danger">' + data.error[count] +
+                                '</div>';
+                        }
+                        $('#form_output').html(error_html);
+                    } else {
+                        $('#form_output').html(data.success);
+                        $('#transaction_form')[0].reset();
+                        $('#action').val('Add');
+                        $('.modal-title').text('Add Data');
+                        $('#button_action').val('insert');
+                        var mytbl = $("#transactionTable").Datatable();
+                        mytbl.ajax.reload(null, false);
+
+
+                    }
+                }
+            })
         });
     </script>
 @endpush

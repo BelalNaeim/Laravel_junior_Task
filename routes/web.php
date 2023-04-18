@@ -23,3 +23,5 @@ Route::post('paypal/payment', [PaymentController::class,'payment'])->name('paypa
 Route::get('paypal/success', [PaymentController::class,'success'])->name('paypal.success');
 Route::get('paypal/cancel', [PaymentController::class,'cancel'])->name('paypal.cancel');
 Route::get('/transaction/index', [PaymentController::class,'index'])->name('transaction.index');
+Route::post('transaction/postdata', [PaymentController::class,'postdata'])->name('postdata');
+

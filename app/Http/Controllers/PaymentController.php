@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller {
     //
@@ -93,6 +94,45 @@ class PaymentController extends Controller {
     public function index( Request $request ) {
         $Transactions = Transaction::select( 'id', 'payment_id', 'amount', 'currency', 'status', 'created_at' )->get();
         return view( 'index', compact( 'Transactions' ) );
+        $students = Student::select( 'first_name', 'last_name' );
+        return Datatables::of( $students )->make( true );
 
+    }
+
+    function postdata( Request $request ) {
+        $validation = Validator::make( $request->all(), [
+            'payment_id' => 'required',
+            'amount'  => 'required',
+            'currency'  => 'required',
+            'status'  => 'required',
+            'created_at'  => 'required',
+
+        ] );
+
+        $error_array = array();
+        $success_output = '';
+        if ( $validation->fails() ) {
+            foreach ( $validation->messages()->getMessages() as $field_name => $messages ) {
+                $error_array[] = $messages;
+            }
+        } else {
+            if ( $request->get( 'button_action' ) == 'insert' ) {
+                $student = new Transaction( [
+                    'payment_id'    =>  $request->get( 'payment_id' ),
+                    'amount'     =>  $request->get( 'amount' ),
+                    'currency'     =>  $request->get( 'currency' ),
+                    'status'     =>  $request->get( 'status' ),
+                    'created_at'     =>  $request->get( 'created_at' ),
+
+                ] );
+                $student->save();
+                $success_output = '<div class="alert alert-success">Data Inserted</div>';
+            }
+        }
+        $output = array(
+            'error'     =>  $error_array,
+            'success'   =>  $success_output
+        );
+        echo json_encode( $output );
     }
 }
